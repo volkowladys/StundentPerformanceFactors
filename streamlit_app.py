@@ -16,8 +16,6 @@ def load_data():
 # Завантаження даних
 data = load_data()
 
-st.write("Ось кілька перших рядків даних:")
-st.write(data.head())
 
 # Вибір візуалізації
 option = st.selectbox(
