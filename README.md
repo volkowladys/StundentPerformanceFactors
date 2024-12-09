@@ -1,5 +1,5 @@
 # Фактори успішності студентів
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)]([https://student-performance-factors.streamlit.app/](https://urban-bassoon-ppw4r6xrw772774x-8501.app.github.dev/))
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://urban-bassoon-ppw4r6xrw772774x-8501.app.github.dev)
 
 ## Мета
 
