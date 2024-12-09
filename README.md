@@ -66,7 +66,9 @@
 Буде використовувати різні бібліотеки Python для аналізу даних, зокрема:
 - Pandas
 - matplotlib
-- тощо
+- streamlit
+- seaborn
+- matplotlib.pyplot
 
 ## Очікувані результати
 
