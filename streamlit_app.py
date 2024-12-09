@@ -1,151 +1,121 @@
 import streamlit as st
 import pandas as pd
-import math
-from pathlib import Path
+import seaborn as sns
+import matplotlib.pyplot as plt
 
-# Set the title and favicon that appear in the Browser's tab bar.
-st.set_page_config(
-    page_title='GDP dashboard',
-    page_icon=':earth_americas:', # This is an emoji shortcode. Could be a URL too.
-)
+# Заголовок додатка
+st.title("Аналіз результатів студентів")
+st.write("Цей застосунок створено для візуалізації різних аспектів студентських даних.")
 
-# -----------------------------------------------------------------------------
-# Declare some useful functions.
-
+# Завантаження даних автоматично
 @st.cache_data
-def get_gdp_data():
-    """Grab GDP data from a CSV file.
+def load_data():
+    # Завантаження файлу із вказаного шляху
+    return pd.read_csv('data/student_performance.csv')
 
-    This uses caching to avoid having to read the file every time. If we were
-    reading from an HTTP endpoint instead of a file, it's a good idea to set
-    a maximum age to the cache with the TTL argument: @st.cache_data(ttl='1d')
-    """
+# Завантаження даних
+data = load_data()
 
-    # Instead of a CSV on disk, you could read from an HTTP endpoint here too.
-    DATA_FILENAME = Path(__file__).parent/'data/gdp_data.csv'
-    raw_gdp_df = pd.read_csv(DATA_FILENAME)
+st.write("Ось кілька перших рядків даних:")
+st.write(data.head())
 
-    MIN_YEAR = 1960
-    MAX_YEAR = 2022
-
-    # The data above has columns like:
-    # - Country Name
-    # - Country Code
-    # - [Stuff I don't care about]
-    # - GDP for 1960
-    # - GDP for 1961
-    # - GDP for 1962
-    # - ...
-    # - GDP for 2022
-    #
-    # ...but I want this instead:
-    # - Country Name
-    # - Country Code
-    # - Year
-    # - GDP
-    #
-    # So let's pivot all those year-columns into two: Year and GDP
-    gdp_df = raw_gdp_df.melt(
-        ['Country Code'],
-        [str(x) for x in range(MIN_YEAR, MAX_YEAR + 1)],
-        'Year',
-        'GDP',
-    )
-
-    # Convert years from string to integers
-    gdp_df['Year'] = pd.to_numeric(gdp_df['Year'])
-
-    return gdp_df
-
-gdp_df = get_gdp_data()
-
-# -----------------------------------------------------------------------------
-# Draw the actual page
-
-# Set the title that appears at the top of the page.
-'''
-# :earth_americas: GDP dashboard
-
-Browse GDP data from the [World Bank Open Data](https://data.worldbank.org/) website. As you'll
-notice, the data only goes to 2022 right now, and datapoints for certain years are often missing.
-But it's otherwise a great (and did I mention _free_?) source of data.
-'''
-
-# Add some spacing
-''
-''
-
-min_value = gdp_df['Year'].min()
-max_value = gdp_df['Year'].max()
-
-from_year, to_year = st.slider(
-    'Which years are you interested in?',
-    min_value=min_value,
-    max_value=max_value,
-    value=[min_value, max_value])
-
-countries = gdp_df['Country Code'].unique()
-
-if not len(countries):
-    st.warning("Select at least one country")
-
-selected_countries = st.multiselect(
-    'Which countries would you like to view?',
-    countries,
-    ['DEU', 'FRA', 'GBR', 'BRA', 'MEX', 'JPN'])
-
-''
-''
-''
-
-# Filter the data
-filtered_gdp_df = gdp_df[
-    (gdp_df['Country Code'].isin(selected_countries))
-    & (gdp_df['Year'] <= to_year)
-    & (from_year <= gdp_df['Year'])
-]
-
-st.header('GDP over time', divider='gray')
-
-''
-
-st.line_chart(
-    filtered_gdp_df,
-    x='Year',
-    y='GDP',
-    color='Country Code',
+# Вибір візуалізації
+option = st.selectbox(
+    "Виберіть візуалізацію:",
+    [
+        "Розподіл результатів іспитів",
+        "Розподіл кількості годин навчання",
+        "Розподіл рівнів мотивації",
+        "Участь у позакласних заходах",
+        "Розподіл рівнів доходу сімей",
+        "Зв'язок годин навчання і результатів іспитів",
+        "Вплив позакласних заходів і труднощів",
+        "Освіта батьків, дохід сім'ї та результати",
+        "Вплив годин сну на результати",
+        "Вплив фізичної активності на результати",
+    ],
 )
 
-''
-''
+# Візуалізації
+if option == "Розподіл результатів іспитів":
+    plt.figure(figsize=(10, 6))
+    sns.histplot(data['Exam_Score'], kde=True, bins=20, color='blue')
+    plt.title("Розподіл результатів іспитів")
+    plt.xlabel("Результат іспиту")
+    plt.ylabel("Кількість студентів")
+    st.pyplot(plt)
 
+elif option == "Розподіл кількості годин навчання":
+    plt.figure(figsize=(10, 6))
+    sns.histplot(data['Hours_Studied'], kde=True, bins=20, color='green')
+    plt.title("Розподіл кількості годин навчання")
+    plt.xlabel("Години навчання")
+    plt.ylabel("Кількість студентів")
+    st.pyplot(plt)
 
-first_year = gdp_df[gdp_df['Year'] == from_year]
-last_year = gdp_df[gdp_df['Year'] == to_year]
+elif option == "Розподіл рівнів мотивації":
+    plt.figure(figsize=(10, 6))
+    sns.countplot(data=data, x='Motivation_Level', palette='viridis')
+    plt.title("Розподіл рівнів мотивації")
+    plt.xlabel("Рівень мотивації")
+    plt.ylabel("Кількість студентів")
+    st.pyplot(plt)
 
-st.header(f'GDP in {to_year}', divider='gray')
+elif option == "Участь у позакласних заходах":
+    plt.figure(figsize=(10, 6))
+    sns.countplot(data=data, x='Extracurricular_Activities', palette='coolwarm')
+    plt.title("Участь у позакласних заходах")
+    plt.xlabel("Позакласні заходи")
+    plt.ylabel("Кількість студентів")
+    st.pyplot(plt)
 
-''
+elif option == "Розподіл рівнів доходу сімей":
+    plt.figure(figsize=(10, 6))
+    sns.countplot(data=data, x='Family_Income', palette='pastel')
+    plt.title("Розподіл рівнів доходу сімей")
+    plt.xlabel("Дохід сім'ї")
+    plt.ylabel("Кількість студентів")
+    st.pyplot(plt)
 
-cols = st.columns(4)
+elif option == "Зв'язок годин навчання і результатів іспитів":
+    plt.figure(figsize=(10, 6))
+    sns.scatterplot(data=data, x='Hours_Studied', y='Exam_Score', hue='Motivation_Level', palette='viridis')
+    plt.title("Зв'язок між годинами навчання, мотивацією та успішністю")
+    plt.xlabel("Години навчання")
+    plt.ylabel("Результат іспиту")
+    plt.legend(title="Рівень мотивації")
+    st.pyplot(plt)
 
-for i, country in enumerate(selected_countries):
-    col = cols[i % len(cols)]
+elif option == "Вплив позакласних заходів і труднощів":
+    plt.figure(figsize=(10, 6))
+    sns.boxplot(data=data, x='Extracurricular_Activities', y='Exam_Score', hue='Learning_Disabilities', palette='coolwarm')
+    plt.title("Вплив позакласних заходів та труднощів на результати")
+    plt.xlabel("Позакласні заходи")
+    plt.ylabel("Результат іспиту")
+    plt.legend(title="Навчальні труднощі")
+    st.pyplot(plt)
 
-    with col:
-        first_gdp = first_year[first_year['Country Code'] == country]['GDP'].iat[0] / 1000000000
-        last_gdp = last_year[last_year['Country Code'] == country]['GDP'].iat[0] / 1000000000
+elif option == "Освіта батьків, дохід сім'ї та результати":
+    plt.figure(figsize=(10, 6))
+    sns.barplot(data=data, x='Parental_Education_Level', y='Exam_Score', hue='Family_Income', palette='pastel')
+    plt.title("Освіта батьків, дохід сім'ї та результати")
+    plt.xlabel("Рівень освіти батьків")
+    plt.ylabel("Результат іспиту")
+    st.pyplot(plt)
 
-        if math.isnan(first_gdp):
-            growth = 'n/a'
-            delta_color = 'off'
-        else:
-            growth = f'{last_gdp / first_gdp:,.2f}x'
-            delta_color = 'normal'
+elif option == "Вплив годин сну на результати":
+    plt.figure(figsize=(10, 6))
+    sns.lineplot(data=data, x='Sleep_Hours', y='Exam_Score', marker='o', ci=None, color='blue')
+    plt.title("Вплив годин сну на результати")
+    plt.xlabel("Години сну")
+    plt.ylabel("Результат іспиту")
+    st.pyplot(plt)
 
-        st.metric(
-            label=f'{country} GDP',
-            value=f'{last_gdp:,.0f}B',
-            delta=growth,
-            delta_color=delta_color
-        )
+elif option == "Вплив фізичної активності на результати":
+    plt.figure(figsize=(10, 6))
+    sns.scatterplot(data=data, x='Physical_Activity', y='Exam_Score', hue='Parental_Education_Level', palette='muted')
+    plt.title("Вплив фізичної активності на результати")
+    plt.xlabel("Фізична активність")
+    plt.ylabel("Результат іспиту")
+    plt.legend(title="Освіта батьків")
+    st.pyplot(plt)
